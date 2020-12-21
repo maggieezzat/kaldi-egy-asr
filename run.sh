@@ -7,8 +7,8 @@ nj=$(nproc)
 
 train_dir="data/train_coll"
 
-#train_dir_half="data/train_half"
-#train_dir_30k="data/train_30k"
+train_dir_half="data/train_half"
+train_dir_30k="data/train_30k"
 
 test_dir="data/coll_dev_10"
 
@@ -110,7 +110,7 @@ if [ $stage -le 4 ]; then
     utils/subset_data_dir.sh --shortest $train_dir 30000 $train_dir_30k || exit 1;
 
     # take subset of data ( about half) for monophone alignment and first triphone training
-    utils/subset_data_dir.sh $train_dir 40000 $train_dir_half || exit 1;
+    utils/subset_data_dir.sh $train_dir 125000 $train_dir_half || exit 1;
 
     # monophone training
     steps/train_mono.sh --nj $nj --cmd "$cmd" $train_dir_30k $lang_dir exp/mono || exit 1;
