@@ -32,6 +32,8 @@ def create_normal_lex(lex_path, text_path, lm_words_path):
     with open(lex_path, 'w') as out:
         out.write("<UNK> SIL\n")
         for word in words:
+            if '<' or '>' in word:
+              continue
             out.write(word + " " + " ".join(list(word)) + '\n')
 
 
@@ -44,7 +46,7 @@ def create_coll_lex(lex_path, text_path, lm_words_path):
 
 
 def main():
-    lex_dir = 'data/lang'
+    lex_dir = 'data/local/dict_nosp'
     if not os.path.exists(lex_dir):
         os.makedirs(lex_dir)
     create_normal_lex(lex_path=lex_dir+'/lexicon.txt', text_path='data/train/text', lm_words_path='local/data/lang_model/lm_corpus_word_list_asmo.txt')
