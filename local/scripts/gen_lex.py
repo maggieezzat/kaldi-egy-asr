@@ -45,7 +45,7 @@ def main():
     lex_dir = 'data/lang'
     if not os.path.exists(lex_dir):
         os.makedirs(lex_dir)
-    create_normal_lex(lex_dir + '/lexicon.txt', text_path='data/train/text')
+    create_normal_lex(lex_path=lex_dir+'/lexicon.txt', text_path='data/train/text', lm_words_path='local/data/lang_model/lm_corpus_word_list_asmo.txt')
 
 
 if __name__ == "__main__":
