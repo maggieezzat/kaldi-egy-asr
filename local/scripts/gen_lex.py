@@ -12,18 +12,20 @@ def create_normal_lex(lex_path, text_path, lm_words_path):
     with open(text_path, 'r') as f:
         for line in f:
             line = line.strip().split(" ", 1)
-            text = line[1]
-            tokens = text.split()
-            for token in tokens:
-                words.append(token)
+            if len(line) >1:
+                text = line[1]
+                tokens = text.split()
+                for token in tokens:
+                    words.append(token)
     
     with open(lm_words_path, 'r') as f:
         for line in f:
             line = line.strip().split(" ", 1)
-            text = line[1]
-            tokens = text.split()
-            for token in tokens:
-                words.append(token)
+            if len(line) >1:
+                text = line[1]
+                tokens = text.split()
+                for token in tokens:
+                    words.append(token)
     
     words = list(set(words))
 
