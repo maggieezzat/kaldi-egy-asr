@@ -158,10 +158,10 @@ def preprocess_validate_data(dev_dir = 'data/coll_dev_10', threshold=12,
 def main():
     #save_duration('local/data/train/wav.scp', 'local/data/durations/train_wavs_durations.txt')
     #save_duration('local/data/coll_dev_10/wav.scp', 'local/data/durations/val_wavs_durations.txt', is_val=True)
-    #preprocess_training_data()
-    #preprocess_validate_data()
-    #preprocess_training_data(train_dir='data/train_coll', threshold=12, coll_only=True, 
-    #    durations_path='local/data/durations/train_wavs_durations.txt', long_utt_path='local/data/durations/train_coll_long_utterances.txt')
+    preprocess_training_data()
+    preprocess_validate_data()
+    preprocess_training_data(train_dir='data/train_coll', threshold=12, coll_only=True, 
+        durations_path='local/data/durations/train_wavs_durations.txt', long_utt_path='local/data/durations/train_coll_long_utterances.txt')
     
 
 if __name__=="__main__":
