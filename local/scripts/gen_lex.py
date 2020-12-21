@@ -6,10 +6,18 @@ import os
 
 
 
-def create_normal_lex(lex_path, text_path):
+def create_normal_lex(lex_path, text_path, lm_words_path):
 
     words = []
     with open(text_path, 'r') as f:
+        for line in f:
+            line = line.strip().split(" ", 1)
+            text = line[1]
+            tokens = text.split()
+            for token in tokens:
+                words.append(token)
+    
+    with open(lm_words_path, 'r') as f:
         for line in f:
             line = line.strip().split(" ", 1)
             text = line[1]
@@ -23,6 +31,14 @@ def create_normal_lex(lex_path, text_path):
         out.write("<UNK> SIL\n")
         for word in words:
             out.write(word + " " + " ".join(list(word)) + '\n')
+
+
+
+
+def create_coll_lex(lex_path, text_path, lm_words_path):
+    pass
+
+
 
 
 def main():

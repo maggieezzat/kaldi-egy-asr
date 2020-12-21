@@ -186,6 +186,7 @@ def main():
     p = Pool(processes=cpu_count())
     p.map(convert_file,files_names)
 
+    files_names = glob.glob(os.path.join("local/data/lang_model/lm_corpus_clean_split_asmo", "*.txt"))  
     merge_splits(files_names, 'local/data/lang_model/lm_corpus_clean_asmo.txt')
     
 
