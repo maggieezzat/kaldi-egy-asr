@@ -5,7 +5,7 @@ import numpy as np
 from pydub import AudioSegment
 
 #############################################################################
-#NOTE: THIS SCRIPT IS TO BE CALLED FROM THE ROOT OF THE REPO (KALDI-MSA-ASR)
+#NOTE: THIS SCRIPT IS TO BE CALLED FROM THE ROOT OF THE REPO (KALDI-EGY-ASR)
 #############################################################################
 
 

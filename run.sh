@@ -5,12 +5,12 @@ stage=0
 cmd="run.pl"
 nj=$(nproc)
 
-train_dir="data/train"
-train_dir_half="data/train_half"
-train_dir_30k="data/train_30k"
+train_dir="data/train_coll"
 
-test_dir="data/test"
-dev_dir="data/dev"
+#train_dir_half="data/train_half"
+#train_dir_30k="data/train_30k"
+
+dev_dir="data/coll_dev_10"
 
 lang_dir="data/lang"
 lang_test_dir="data/lang_test"
@@ -30,9 +30,6 @@ if [ $stage -le 0 ]; then
 
     #create wav.scp, text and utt2spk file for each of the train, dev and test set
     python local/scripts/gen_wavscp_text_utt2spk.py
-
-    #add silence to the wav files (SIL begin and SIL end)
-    python local/wave_manipulator/silence_adder.py
 
     #create utt2spk and fix data dir
     for x in $train_dir $test_dir $dev_dir; do
