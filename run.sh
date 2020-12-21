@@ -10,7 +10,7 @@ train_dir="data/train_coll"
 #train_dir_half="data/train_half"
 #train_dir_30k="data/train_30k"
 
-dev_dir="data/coll_dev_10"
+test_dir="data/coll_dev_10"
 
 lang_dir="data/lang"
 lang_test_dir="data/lang_test"
@@ -32,7 +32,7 @@ if [ $stage -le 0 ]; then
     python local/scripts/gen_wavscp_text_utt2spk.py
 
     #create utt2spk and fix data dir
-    for x in $train_dir $test_dir $dev_dir; do
+    for x in $train_dir $test_dir; do
         #sort the files
         sort -u -o $x/wav.scp $x/wav.scp
         sort -u -o $x/text $x/text
@@ -51,9 +51,9 @@ fi
 ################################################## Feature Extraction ###############################################
 if [ $stage -le 1 ]; then
 
-    echo "$0: Eextracting features"
+    echo "$0: Extracting features"
 
-    for x in $train_dir $test_dir $dev_dir; do
+    for x in $train_dir $test_dir; do
         #make Mel Frequency features
         log_dir="$x/log"
         mfcc_dir="$x/mfcc"
@@ -232,7 +232,7 @@ if [ $stage -le 11 ]; then
     steps/align_basis_fmllr.sh  --nj $nj --cmd "$cmd" $train_dir $lang_dir exp/tri6 exp/tri6_ali
 
     #train third pass of LDA-MLLT
-    steps/train_lda_mllt.sh --cmd "$cmd" 8500 140000 $train_dir $lang_dir exp/tri6_ali exp/tri7
+    steps/train_lda_mllt.sh --cmd "$cmd" 8500 150000 $train_dir $lang_dir exp/tri6_ali exp/tri7
 fi
 #####################################################################################################################
 
@@ -246,7 +246,7 @@ if [ $stage -le 12 ]; then
     steps/align_fmllr.sh --nj $nj --cmd "$cmd" $train_dir $lang_dir exp/tri7 exp/tri7_ali
     
     #Train SAT triphones
-    steps/train_sat_basis.sh --cmd "$cmd" 10000 180000 $train_dir $lang_dir exp/tri7_ali exp/tri8
+    steps/train_sat_basis.sh --cmd "$cmd" 10000 200000 $train_dir $lang_dir exp/tri7_ali exp/tri8
 
     #Align SAT triphones with FMLLR
     steps/align_basis_fmllr.sh  --nj $nj --cmd "$cmd" $train_dir $lang_dir exp/tri8 exp/tri8_ali
