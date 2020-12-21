@@ -58,7 +58,8 @@ def split_train_test(lm_corpus_asmo, train_lm, test_lm):
         with open(train_lm, 'w') as train:
             with open(test_lm, 'w') as test:
                 for line in f:
-                    if i%100000 == 0 and len(test_words)<120000:
+                    i+=1
+                    if i%100000 == 0 and len(test_words)<150000:
                         test.write(line)
                         words = line.strip().split()
                         for word in words:
@@ -70,9 +71,10 @@ def split_train_test(lm_corpus_asmo, train_lm, test_lm):
 
 
 def main():
-    #clean_lm(corpus_path='local/data/lang_model/corpus_merged_clean_3.txt', out_path='local/data/lang_model/lm_corpus_clean.txt')
-    #gen_words_list(dict_path='local/data/lang_model/corpus_merged_final_dict.txt', out_path='local/data/lang_model/lm_corpus_word_list.txt')
-    #convert_word_list(word_list='local/data/lang_model/lm_corpus_word_list.txt', out_path='local/data/lang_model/lm_corpus_word_list_asmo.txt')
+    
+    clean_lm(corpus_path='local/data/lang_model/corpus_merged_clean_3.txt', out_path='local/data/lang_model/lm_corpus_clean.txt')
+    gen_words_list(dict_path='local/data/lang_model/corpus_merged_final_dict.txt', out_path='local/data/lang_model/lm_corpus_word_list.txt')
+    convert_word_list(word_list='local/data/lang_model/lm_corpus_word_list.txt', out_path='local/data/lang_model/lm_corpus_word_list_asmo.txt')
 
     split_train_test(lm_corpus_asmo='local/data/lang_model/lm_corpus_clean_asmo.txt', 
         train_lm='data/local/lm/lm_corpus_train.txt', test_lm='data/local/lm/lm_corpus_test.txt')
