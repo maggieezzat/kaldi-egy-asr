@@ -9,15 +9,16 @@ import sys
 #############################################################################
 
 
-input_path = sys.argv[0]
-output_path = sys.argv[1]
+input_path = sys.argv[1]
+output_path = sys.argv[2]
 
 if not os.path.exists(output_path):
     os.makedirs(output_path)
 
 files = glob.glob(os.path.join(input_path, "*.wav"))
+print(os.path.join(input_path, "*.wav"))
 total = len(files)
-
+print(total, " files")
 i=0
 for _file in files:
     i+=1
