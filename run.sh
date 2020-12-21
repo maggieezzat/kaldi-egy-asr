@@ -82,10 +82,8 @@ if [ $stage -le 2 ]; then
 
     #TODO: LEXICON AND LM
     
-    #copy nonsilence_phones.txt, optional_silence.txt, silence_phones.txt files to data/local/dict_nosp
-    cp local/data/dict_nosp/nonsilence_phones.txt data/local/dict_nosp/
-    cp local/data/dict_nosp/optional_silence.txt data/local/dict_nosp
-    cp local/data/dict_nosp/silence_phones.txt data/local/dict_nosp
+    #create nonsilence_phones.txt, optional_silence.txt, silence_phones.txt files
+    ./local/scripts/create_phones.sh $dict_dir_nosp
 
     #create files for data/lang
     utils/prepare_lang.sh $dict_dir_nosp "<UNK>" data/local/lang $lang_dir || exit 1;
