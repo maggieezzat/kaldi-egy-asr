@@ -11,6 +11,10 @@ from pydub import AudioSegment
 
 
 def save_duration(input_wav_scp_path, output_path, is_val=False):
+
+    if not os.path.exists(output_path):
+        os.makedirs("/".join(output_path.split("/")[:-1]))
+    
     with open(input_wav_scp_path,'r') as f:
         with open(output_path,'w') as d:
             counter = 0
@@ -18,21 +22,23 @@ def save_duration(input_wav_scp_path, output_path, is_val=False):
                 line = line.strip()
                 id = line.split()[0]
                 if is_val:
-                    path = line.split()[1].replace('/home/rdi/kaldi-master-19-jun-2018-GPU-compiled/egs/Dr-Sherif/','./Waves/')
+                    path = line.split()[1].replace('/home/rdi/kaldi-master-19-jun-2018-GPU-compiled/egs/Dr-Sherif/','waves/')
                 else:
                     path = line.split()[1]
                 try:
-                    dur = AudioSegment.from_file('../'+path).duration_seconds
-                    d.write(id+'\t'+path+'\t'+str(dur)+'\n')
+                    dur = AudioSegment.from_file(path).duration_seconds
+                    d.write(id + ' ' + path + ' ' + str(dur) + '\n')
                     counter +=1
-                    print('computing duration of wav file num',counter,end='\r')
+                    print('computing duration of wav file num: ',counter,end='\r')
                 except:
-                    d.write(id+'\t'+path+'\tinvalid\n')
+                    d.write(id + ' ' + path + ' invalid\n')
+
 
 
 
 ################# Training Data Preprocessing #################
-def preprocess_training_data(train_dir = 'data/train', threshold=12):
+def preprocess_training_data(train_dir = 'data/train', threshold=12, coll_only=False, 
+    durations_path='local/data/durations/train_wavs_durations.txt', long_utt_path='local/data/durations/train_long_utterances.txt'):
     text = {}
     waves_dict = {}
 
@@ -44,21 +50,35 @@ def preprocess_training_data(train_dir = 'data/train', threshold=12):
                 sent = re.sub(' SIL','',sent)
                 text[line[0]] = sent.strip()
 
-    with open('train_wavs_duration.txt','r') as f:
-        with open('temp/train_long_utterances.txt', 'w') as out:
+    total_dur = 0
+    long_utt_dur = 0
+    with open(durations_path,'r') as f:
+        with open(long_utt_path, 'w') as out:
             counter = 0
             for line in f:
                 line = line.strip()
                 id = line.split()[0]
                 path = line.split()[1]
                 dur = int(float(line.split()[2]))
-                if dur <= threshold:
-                    waves_dict[id] = (id, path)
-                    counter +=1
-                    print('num of selected wavs: ', counter, end='\r')
-                else:
-                    out.write(line + '\n')
+                if (coll_only and 'Colloquial-Waves' in path) or not coll_only:
+                    total_dur += dur
+                    if dur <= threshold:
+                        waves_dict[id] = (id, path)
+                        counter +=1
+                        print('num of selected wavs: ', counter, end='\r')
+                    else:
+                        out.write(line + '\n')
+                        long_utt_dur += dur
+    
+    hours, rem = divmod(total_dur, 3600)
+    minutes, seconds = divmod(rem, 60)
+
     print('Train : total num of waves is',len(waves_dict))
+    print('Train : total duration is {:0>2}:{:0>2}:{:0>2}'.format(int(hours),int(minutes),int(seconds)) )
+
+    hours, rem = divmod(long_utt_dur, 3600)
+    minutes, seconds = divmod(rem, 60)
+    print('Train : long utterances duration is {:0>2}:{:0>2}:{:0>2}'.format(int(hours),int(minutes),int(seconds)) )
 
     if not os.path.exists(train_dir):
         os.makedirs(train_dir)
@@ -81,7 +101,8 @@ def preprocess_training_data(train_dir = 'data/train', threshold=12):
 
 
 ################# Validation Data Preprocessing #################
-def preprocess_validate_data(dev_dir = 'data/dev', threshold=12):
+def preprocess_validate_data(dev_dir = 'data/coll_dev_10', threshold=12,
+    durations_path='local/data/durations/val_wavs_durations.txt', long_utt_path='local/data/durations/val_long_utterances.txt'):
     text = {}
     waves_dict = {}
     with open('local/data/coll_dev_10/text', 'r') as f:
@@ -92,15 +113,16 @@ def preprocess_validate_data(dev_dir = 'data/dev', threshold=12):
                 sent = re.sub(' SIL','',sent)
                 text[line[0]] = sent.strip()
 
-
-    with open('local/data/val_wavs_duration.txt', 'r') as f:
-        with open('local/data/val_long_utterances.txt', 'w') as out:
+    total_dur = 0
+    with open(durations_path, 'r') as f:
+        with open(long_utt_path, 'w') as out:
             counter = 0
             for line in f:
                 line = line.strip()
                 id = line.split()[0]
                 path = line.split()[1]
                 dur = int(float(line.split()[2]))
+                total_dur += dur
                 if dur <= threshold:
                     waves_dict[id] = (id, path)
                     counter += 1
@@ -108,7 +130,11 @@ def preprocess_validate_data(dev_dir = 'data/dev', threshold=12):
                 else:
                     out.write(line + '\n')
     
+    hours, rem = divmod(total_dur, 3600)
+    minutes, seconds = divmod(rem, 60)
+
     print('Val : total num of waves is',len(waves_dict))
+    print('Val : total duration is {:0>2}:{:0>2}:{:0>2}'.format(int(hours),int(minutes),int(seconds)) )
 
     if not os.path.exists(dev_dir):
         os.makedirs(dev_dir)
@@ -128,11 +154,15 @@ def preprocess_validate_data(dev_dir = 'data/dev', threshold=12):
 
 
 
+
 def main():
-    #save_duration('../Waves/wav.scp', 'train_wavs_duration.txt')
-    #save_duration('../Waves/coll_dev_10/wav.scp', 'val_wavs_duration.txt', True)
-    preprocess_training_data()
-    preprocess_validate_data()
+    #save_duration('local/data/train/wav.scp', 'local/data/durations/train_wavs_durations.txt')
+    #save_duration('local/data/coll_dev_10/wav.scp', 'local/data/durations/val_wavs_durations.txt', is_val=True)
+    #preprocess_training_data()
+    #preprocess_validate_data()
+    #preprocess_training_data(train_dir='data/train_coll', threshold=12, coll_only=True, 
+    #    durations_path='local/data/durations/train_wavs_durations.txt', long_utt_path='local/data/durations/train_coll_long_utterances.txt')
+    
 
 if __name__=="__main__":
     main()
