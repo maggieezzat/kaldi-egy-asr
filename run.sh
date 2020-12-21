@@ -3,34 +3,23 @@
 stage=0
 
 cmd="run.pl"
-nj=$(grep -c ^processor /proc/cpuinfo)
+nj=$(nproc)
+
 train_dir="data/train"
 train_dir_half="data/train_half"
 train_dir_30k="data/train_30k"
+
 test_dir="data/test"
 dev_dir="data/dev"
 
-#####################################################################
-#NOTE: big-lex, small-lex and big-lm, small-lm are there for development purposes and shall be removed in the end
 lang_dir="data/lang"
 lang_test_dir="data/lang_test"
-
-#lang_dir="data/lang_big_lex"
-#lang_test_dir="data/lang_test_big_lex"
-
 
 dict_dir_nosp="data/local/dict_nosp"
 dict_dir="data/local/dict"
 
-#dict_dir_nosp="data/local/dict_nosp_big_lex"
-#dict_dir="data/local/dict_big_lex"
+lm_dir="data/local/lm/trigram"
 
-
-lm_dir="data/local/lm/small-lm-trigram"
-#lm_dir="data/local/lm/big-lm-trigram"
-#######################################################################
-
-decode_tri4=false
 
 . ./path.sh
 . ./utils/parse_options.sh
@@ -39,17 +28,8 @@ decode_tri4=false
 if [ $stage -le 0 ]; then
     echo "$0: Creating necessary files and preparing data. this may take a long while"
 
-    #get the waves from msa dataset only
-    python local/scripts/get_msa_waves.py
-
-    #get duration of all wav files in msa data
-    ./local/scripts/get_durations.sh
-
     #create wav.scp, text and utt2spk file for each of the train, dev and test set
     python local/scripts/gen_wavscp_text_utt2spk.py
-
-    #copy the used waved to a dir on their own
-    ./local/scripts/create_used_waves_dir.sh
 
     #add silence to the wav files (SIL begin and SIL end)
     python local/wave_manipulator/silence_adder.py
@@ -103,15 +83,8 @@ fi
 #################################################### Lang directory #################################################
 if [ $stage -le 2 ]; then
 
-    #generate language model vocab file
-    python local/scripts/gen_lm_vocab.py
-
-    #cutting on appropriate threshold and creating words list
-    python local/scripts/cut_lm_vocab.py 15
+    #TODO: LEXICON AND LM
     
-    #create lexicon file from lm vocab + standard lexicon file (provided by Dr. Sherif) + transcripts vocab
-    python local/scripts/gen_big_lexicon.py
-
     #copy nonsilence_phones.txt, optional_silence.txt, silence_phones.txt files to data/local/dict_nosp
     cp local/data/dict_nosp/nonsilence_phones.txt data/local/dict_nosp/
     cp local/data/dict_nosp/optional_silence.txt data/local/dict_nosp
@@ -129,7 +102,7 @@ fi
 
 ############################################# Language Model Training ###############################################
 if [ $stage -le 3 ]; then
-    ./local/train_msa_lm.sh
+    ./local/train_egy_lm.sh
 fi
 #####################################################################################################################
 
@@ -141,10 +114,8 @@ if [ $stage -le 4 ]; then
     # take subset of data (30k) for monophone training
     utils/subset_data_dir.sh --shortest $train_dir 30000 $train_dir_30k || exit 1;
 
-    ################TODO:
-    #remove --first
     # take subset of data ( about half) for monophone alignment and first triphone training
-    utils/subset_data_dir.sh --first $train_dir 40000 $train_dir_half || exit 1;
+    utils/subset_data_dir.sh $train_dir 40000 $train_dir_half || exit 1;
 
     # monophone training
     steps/train_mono.sh --nj $nj --cmd "$cmd" $train_dir_30k $lang_dir exp/mono || exit 1;
@@ -216,11 +187,6 @@ if [ $stage -le 8 ]; then
     #Train SAT triphones
     steps/train_sat_basis.sh --cmd "$cmd" 4200 40000 $train_dir $lang_dir exp/tri3_ali exp/tri4
     
-    #decoding
-    if $decode_tri4; then
-        utils/mkgraph.sh $lang_test_dir exp/tri4 exp/tri4/graph
-        steps/decode_basis_fmllr.sh --nj $nj --cmd "$cmd" exp/tri4/graph $dev_dir exp/tri4/decode_dev
-    fi
 fi
 #####################################################################################################################
 
@@ -313,6 +279,6 @@ if [ $stage -le 13 ]; then
     else
       echo "Successfully set compute mode to Exclusive_Process"
     fi
-    CUDA_VISIBLE_DEVICES=0,1 local/nnet3/run_tdnn.sh
+    CUDA_VISIBLE_DEVICES=0,1 local/nnet3/run_tdnn_lstm.sh
 fi
 #####################################################################################################################
