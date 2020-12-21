@@ -28,7 +28,9 @@ sort -u -o $lm_vocab $lm_vocab
 ################################################### LM Training #####################################################
 #trigram language model with limiting bi-gram and tri-gram counts
 echo "$0: Training trigram language model"
-$srilm_dir/ngram-count -text $lm_text -order 3 -limit-vocab -vocab $lm_vocab -unk -map-unk "<UNK>" -kndiscount -interpolate -lm $tri_dir/tri_lm.o3g.kn.gz -gt2min 3 -gt3min 2
+#$srilm_dir/ngram-count -text $lm_text -order 3 -limit-vocab -vocab $lm_vocab -unk -map-unk "<UNK>" -kndiscount -interpolate -lm $tri_dir/tri_lm.o3g.kn.gz -gt2min 3 -gt3min 2
+$srilm_dir/ngram-count -text $lm_text -order 3 -limit-vocab -vocab $lm_vocab -unk -map-unk "<UNK>" -kndiscount -interpolate -lm $tri_dir/tri_lm.o3g.kn.gz
+
 
 #measure perplexity
 echo "$0: Measuring perplexity for trigram language model"

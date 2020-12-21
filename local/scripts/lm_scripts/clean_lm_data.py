@@ -62,7 +62,7 @@ def split_train_test(lm_corpus_asmo, train_lm, test_lm):
                     words = line.strip().split()
                     if len(words) <3 :
                         continue
-                    if i%100000 == 0 and len(test_words)<150000:
+                    if i%1000 == 0 and len(test_words)<150000:
                         test.write(line)
                         for word in words:
                             test_words[word] = word
