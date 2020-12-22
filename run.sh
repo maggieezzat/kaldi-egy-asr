@@ -80,7 +80,9 @@ fi
 #################################################### Lang directory #################################################
 if [ $stage -le 2 ]; then
 
-    #TODO: LEXICON AND LM
+    #LEXICON AND LM
+    python3 local/scripts/lm_scripts/clean_lm_data.py
+    sort -u -o data/local/lm/lm_corpus_word_list_asmo.txt data/local/lm/lm_corpus_word_list_asmo.txt
     python3 local/scripts/gen_lex.py
     
     #create nonsilence_phones.txt, optional_silence.txt, silence_phones.txt files
