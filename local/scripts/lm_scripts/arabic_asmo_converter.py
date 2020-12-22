@@ -332,7 +332,14 @@ def main():
     files_names = glob.glob(os.path.join("local/data/lang_model/lm_corpus_clean_split_asmo", "*.txt"))  
     merge_splits(files_names, 'local/data/lang_model/lm_corpus_clean_asmo.txt')
     '''
-    print(conv_arab('Oj A eNfag hj AAAAA AAA AAAA AAAA'))    
+
+    with open('data/train_coll/text', 'r') as f:
+        with open('data/train_coll/text_ar', 'w') as out:
+            for line in f:
+                line = line.strip().split(" ", 1)
+                fname = line[0]
+                text = line[1]
+                out.write(fname + " " + conv_arab(text) + '\n') 
 
     
 if __name__ == "__main__":

@@ -50,24 +50,28 @@ def convert_word_list(word_list, out_path):
 
 
 
-def split_train_test(lm_corpus_asmo, train_lm, test_lm):
+def split_train_test(lm_corpus_asmo, train_text, train_lm, test_lm):
 
     i=0
     test_words = {}
     with open(lm_corpus_asmo, 'r') as f:
-        with open(train_lm, 'w') as train:
-            with open(test_lm, 'w') as test:
-                for line in f:
-                    i+=1
-                    words = line.strip().split()
-                    if len(words) <3 :
-                        continue
-                    if i%1000 == 0 and len(test_words)<150000:
-                        test.write(line)
-                        for word in words:
-                            test_words[word] = word
-                    else:
-                        train.write(line)
+        with open(train_text, 'r') as f_train:
+            with open(train_lm, 'w') as train:
+                with open(test_lm, 'w') as test:
+                    for line in f:
+                        i+=1
+                        words = line.strip().split()
+                        if len(words) <3 :
+                            continue
+                        if i%1000 == 0 and len(test_words)<150000:
+                            test.write(line)
+                            for word in words:
+                                test_words[word] = word
+                        else:
+                            train.write(line)
+                    for line in f_train:
+                        txt = line.strip().split(" ", 1)[1]
+                        train.write(txt + '\n')
 
 
 
@@ -78,7 +82,7 @@ def main():
     #gen_words_list(dict_path='local/data/lang_model/corpus_merged_final_dict.txt', out_path='local/data/lang_model/lm_corpus_word_list.txt')
     #convert_word_list(word_list='local/data/lang_model/lm_corpus_word_list.txt', out_path='local/data/lang_model/lm_corpus_word_list_asmo.txt')
 
-    split_train_test(lm_corpus_asmo='local/data/lang_model/lm_corpus_clean_asmo.txt', 
+    split_train_test(lm_corpus_asmo='local/data/lang_model/lm_corpus_clean_asmo.txt', train_text='data/train_coll/text',
         train_lm='data/local/lm/lm_corpus_train.txt', test_lm='data/local/lm/lm_corpus_test.txt')
 
 
