@@ -81,6 +81,7 @@ fi
 if [ $stage -le 2 ]; then
 
     #TODO: LEXICON AND LM
+    python3 local/scripts/gen_lex.py
     
     #create nonsilence_phones.txt, optional_silence.txt, silence_phones.txt files
     ./local/scripts/create_phones.sh $dict_dir_nosp
