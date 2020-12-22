@@ -5,20 +5,21 @@ stage=0
 cmd="run.pl"
 nj=$(nproc)
 
-train_dir="data/train_coll"
+#lm_type=""
+lm_type="_coll"
 
+train_dir="data/train_coll"
 train_dir_half="data/train_half"
 train_dir_30k="data/train_30k"
-
 test_dir="data/coll_dev_10"
 
-lang_dir="data/lang"
-lang_test_dir="data/lang_test"
+lang_dir="data/lang$lm_type"
+lang_test_dir="data/lang_test$lm_type"
 
-dict_dir_nosp="data/local/dict_nosp"
-dict_dir="data/local/dict"
+dict_dir_nosp="data/local/dict_nosp$lm_type"
+dict_dir="data/local/dict$lm_type"
 
-lm_dir="data/local/lm/trigram"
+lm_dir="data/local/lm$lm_type/trigram"
 
 
 . ./path.sh
@@ -82,7 +83,7 @@ if [ $stage -le 2 ]; then
 
     #LEXICON AND LM
     python3 local/scripts/lm_scripts/clean_lm_data.py
-    sort -u -o data/local/lm/lm_corpus_word_list_asmo.txt data/local/lm/lm_corpus_word_list_asmo.txt
+    sort -u -o data/local/lm$lm_type/lm_corpus_word_list_asmo.txt data/local/lm$lm_type/lm_corpus_word_list_asmo.txt
     python3 local/scripts/gen_lex.py
     
     #create nonsilence_phones.txt, optional_silence.txt, silence_phones.txt files

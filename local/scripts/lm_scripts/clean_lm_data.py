@@ -87,26 +87,29 @@ def split_train_test(lm_corpus_asmo, train_text, train_lm, test_lm):
 
 def main():
     
-    clean_lm(corpus_path='local/data/lang_model/corpus_merged_clean_3.txt', out_path='local/data/lang_model/lm_corpus_clean.txt')
+    #clean_lm(corpus_path='local/data/lang_model/corpus_merged_clean_3.txt', out_path='local/data/lang_model/lm_corpus_clean.txt')
 
-    split_file_chunk('local/data/lang_model/lm_corpus_clean.txt')
+    #split_file_chunk('local/data/lang_model/lm_corpus_clean.txt')
     
-    files_names = glob.glob(os.path.join("local/data/lang_model/lm_corpus_clean_split", "*.txt"))    
-    p = Pool(processes=cpu_count())
-    p.map(convert_file,files_names)
+    #files_names = glob.glob(os.path.join("local/data/lang_model/lm_corpus_clean_split", "*.txt"))    
+    #p = Pool(processes=cpu_count())
+    #p.map(convert_file,files_names)
 
-    files_names = glob.glob(os.path.join("local/data/lang_model/lm_corpus_clean_split_asmo", "*.txt"))  
-    merge_splits(files_names, 'local/data/lang_model/lm_corpus_clean_asmo.txt')
+    #files_names = glob.glob(os.path.join("local/data/lang_model/lm_corpus_clean_split_asmo", "*.txt"))  
+    #merge_splits(files_names, 'local/data/lang_model/lm_corpus_clean_asmo.txt')
 
+    #gen_words_list(dict_path='local/data/lang_model/corpus_merged_final_dict.txt', out_path='local/data/lang_model/lm_corpus_word_list.txt')
+    #convert_word_list(word_list='local/data/lang_model/lm_corpus_word_list.txt', train_text='data/train/text', out_path='data/local/lm/lm_corpus_word_list_asmo.txt')
     
-    gen_words_list(dict_path='local/data/lang_model/corpus_merged_final_dict.txt', out_path='local/data/lang_model/lm_corpus_word_list.txt')
-    convert_word_list(word_list='local/data/lang_model/lm_corpus_word_list.txt', train_text='data/train/text', out_path='data/local/lm/lm_corpus_word_list_asmo.txt')
-    
-    #split_train_test(lm_corpus_asmo='data/local/lm/lm_corpus_clean_asmo.txt', train_text='data/train_coll/text',
+    #split_train_test(lm_corpus_asmo='data/local/lm/lm_corpus_clean_asmo.txt', train_text='data/train/text',
     #    train_lm='data/local/lm/lm_corpus_train.txt', test_lm='data/local/lm/lm_corpus_test.txt')
+
     
-    split_train_test(lm_corpus_asmo='data/local/lm/lm_corpus_clean_asmo.txt', train_text='data/train/text',
-        train_lm='data/local/lm/lm_corpus_train.txt', test_lm='data/local/lm/lm_corpus_test.txt')
+    #COLLOQIAL LEXICON DATA
+    convert_word_list(word_list='local/data/lang_model/lm_corpus_word_list.txt', train_text='data/train_coll/text', out_path='data/local/lm_coll/lm_corpus_word_list_asmo.txt')
+    
+    split_train_test(lm_corpus_asmo='local/data/lang_model/lm_corpus_clean_asmo.txt', train_text='data/train_coll/text',
+        train_lm='data/local/lm_coll/lm_corpus_train.txt', test_lm='data/local/lm_coll/lm_corpus_test.txt')
 
 
 if __name__ == "__main__":
