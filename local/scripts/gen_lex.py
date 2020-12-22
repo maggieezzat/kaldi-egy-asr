@@ -45,7 +45,6 @@ def create_normal_lex(lex_path, lexp_path, text_path, lm_words_path):
 def coda_rules(word):
 
     coll_words = []
-    coll_words.append(word)
     
     #ق -> ء 
     if 'b' in word:
@@ -76,7 +75,7 @@ def coda_rules(word):
     if 'W' in word:
         coll_words.append(word.replace('W', 'J'))
 
-    return coll_words
+    return word, list(set(coll_words))
 
 
 
@@ -110,13 +109,18 @@ def create_coll_lex(lex_path, lexp_path, text_path, lm_words_path):
                 if word == '<UNK>':
                     continue
                 
-                coll_words = coda_rules(word)
-                prob = 1.0/len(coll_words)
+                word, coll_words = coda_rules(word)
+                prob = 1.0/(len(coll_words)+1)
                 prob_str = "{:.2f}".format(prob)
+                lex.write(word + " " + " ".join(list(word)) + '\n')
+                lex.flush()
+                lexp.write(word + " " + prob_str + " " + " ".join(list(word)) + '\n')
+                lexp.flush()
+
                 for coll_word in coll_words:
-                    lex.write(coll_word + " " + " ".join(list(coll_word)) + '\n')
+                    lex.write(word + " " + " ".join(list(coll_word)) + '\n')
                     lex.flush()
-                    lexp.write(coll_word + " " + prob_str + " " + " ".join(list(coll_word)) + '\n')
+                    lexp.write(word + " " + prob_str + " " + " ".join(list(coll_word)) + '\n')
                     lexp.flush()
 
 
