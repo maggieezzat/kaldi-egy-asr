@@ -29,7 +29,7 @@ if [ $stage -le 0 ]; then
     echo "$0: Creating necessary files and preparing data. this may take a long while"
 
     #create wav.scp, text and utt2spk file for each of the train, dev and test set
-    python local/scripts/gen_wavscp_text_utt2spk.py
+    python local/scripts/gen_wavscp_uttspk_text.py
 
     #create utt2spk and fix data dir
     for x in $train_dir $test_dir; do
