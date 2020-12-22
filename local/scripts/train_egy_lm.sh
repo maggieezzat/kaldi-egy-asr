@@ -4,8 +4,11 @@ srilm_dir="../../tools/srilm/bin/i686-m64"
 
 
 lm_text="data/local/lm/lm_corpus_train.txt"
-lm_vocab="data/local/lm/lm_corpus_test.txt"
-lm_test="data/local/lm/lm_corpus_word_list_asmo.txt"
+
+lm_vocab="data/local/lm/lm_corpus_word_list_asmo.txt"
+
+lm_test="data/local/lm/lm_corpus_test.txt"
+
 tri_dir="data/local/lm/trigram"
 
 lang_test_dir="data/lang_test"
