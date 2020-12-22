@@ -44,6 +44,7 @@ def convert_word_list(word_list, train_text, out_path):
     with open(word_list, 'r') as f:
         with open(out_path, 'w') as out:
             with open(train_text, 'r') as f_train:
+                out.write("<UNK>\n")
                 for line in f:
                     line = line.strip()
                     asmo_line = conv_asmo(line)
