@@ -40,13 +40,20 @@ def gen_words_list(dict_path, out_path, threshold=4):
 
 
 
-def convert_word_list(word_list, out_path):
+def convert_word_list(word_list, train_text, out_path):
     with open(word_list, 'r') as f:
         with open(out_path, 'w') as out:
-            for line in f:
-                line = line.strip()
-                asmo_line = conv_asmo(line)
-                out.write(asmo_line + '\n')
+            with open(train_text, 'r') as f_train:
+                for line in f:
+                    line = line.strip()
+                    asmo_line = conv_asmo(line)
+                    out.write(asmo_line + '\n')
+                #add train words
+                for line in f_train:
+                    line = line.strip().split(" ", 1)
+                    words = line[1].split()
+                    for word in words:
+                        out.write(word + '\n')
 
 
 
@@ -69,6 +76,7 @@ def split_train_test(lm_corpus_asmo, train_text, train_lm, test_lm):
                                 test_words[word] = word
                         else:
                             train.write(line)
+                    #add train transcriptions to train data
                     for line in f_train:
                         txt = line.strip().split(" ", 1)[1]
                         train.write(txt + '\n')
@@ -80,9 +88,12 @@ def main():
     
     #clean_lm(corpus_path='local/data/lang_model/corpus_merged_clean_3.txt', out_path='local/data/lang_model/lm_corpus_clean.txt')
     #gen_words_list(dict_path='local/data/lang_model/corpus_merged_final_dict.txt', out_path='local/data/lang_model/lm_corpus_word_list.txt')
-    #convert_word_list(word_list='local/data/lang_model/lm_corpus_word_list.txt', out_path='local/data/lang_model/lm_corpus_word_list_asmo.txt')
-
-    split_train_test(lm_corpus_asmo='local/data/lang_model/lm_corpus_clean_asmo.txt', train_text='data/train_coll/text',
+    convert_word_list(word_list='local/data/lang_model/lm_corpus_word_list.txt', train_text='data/train/text', out_path='local/data/lang_model/lm_corpus_word_list_asmo.txt')
+    
+    #split_train_test(lm_corpus_asmo='local/data/lang_model/lm_corpus_clean_asmo.txt', train_text='data/train_coll/text',
+    #    train_lm='data/local/lm/lm_corpus_train.txt', test_lm='data/local/lm/lm_corpus_test.txt')
+    
+    split_train_test(lm_corpus_asmo='local/data/lang_model/lm_corpus_clean_asmo.txt', train_text='data/train/text',
         train_lm='data/local/lm/lm_corpus_train.txt', test_lm='data/local/lm/lm_corpus_test.txt')
 
 

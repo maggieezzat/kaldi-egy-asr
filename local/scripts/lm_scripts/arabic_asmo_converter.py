@@ -322,7 +322,7 @@ def merge_splits(files, output_file_path):
 
 
 def main():
-    '''
+
     split_file_chunk('local/data/lang_model/lm_corpus_clean.txt')
     
     files_names = glob.glob(os.path.join("local/data/lang_model/lm_corpus_clean_split", "*.txt"))    
@@ -331,8 +331,8 @@ def main():
 
     files_names = glob.glob(os.path.join("local/data/lang_model/lm_corpus_clean_split_asmo", "*.txt"))  
     merge_splits(files_names, 'local/data/lang_model/lm_corpus_clean_asmo.txt')
-    '''
 
+    '''
     with open('data/train_coll/text', 'r') as f:
         with open('data/train_coll/text_ar', 'w') as out:
             for line in f:
@@ -340,6 +340,7 @@ def main():
                 fname = line[0]
                 text = line[1]
                 out.write(fname + " " + conv_arab(text) + '\n') 
+    '''
 
     
 if __name__ == "__main__":

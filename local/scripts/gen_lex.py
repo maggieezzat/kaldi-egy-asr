@@ -56,7 +56,8 @@ def main():
     
     lex_file = lex_dir + '/lexicon.txt'
     lexp_file = lex_dir + '/lexiconp.txt'
-    create_normal_lex(lex_path=lex_file, lexp_path=lexp_file, text_path='data/train_coll/text', lm_words_path='data/local/lm/lm_corpus_word_list_asmo.txt')
+    #create_normal_lex(lex_path=lex_file, lexp_path=lexp_file, text_path='data/train_coll/text', lm_words_path='data/local/lm/lm_corpus_word_list_asmo.txt')
+    create_normal_lex(lex_path=lex_file, lexp_path=lexp_file, text_path='data/train/text', lm_words_path='data/local/lm/lm_corpus_word_list_asmo.txt')
 
 
 if __name__ == "__main__":
