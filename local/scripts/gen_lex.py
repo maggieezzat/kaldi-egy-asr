@@ -46,7 +46,7 @@ def coda_rules(word):
 
     coll_words = []
     coll_words.append(word)
-    ‫ 
+    
     #ق -> ء 
     if 'b' in word:
         coll_words.append(word.replace('b', 'A'))
