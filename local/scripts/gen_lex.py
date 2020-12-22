@@ -81,7 +81,7 @@ def coda_rules(word):
 
 
 
-def create_coll_lex(lex_path, text_path, lm_words_path):
+def create_coll_lex(lex_path, lexp_path, text_path, lm_words_path):
     words = []
     with open(text_path, 'r') as f:
         for line in f:
