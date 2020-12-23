@@ -29,7 +29,7 @@ lm_dir="data/local/lm$lm_type/trigram"
 if [ $stage -le 0 ]; then
     echo "$0: Creating necessary files and preparing data. this may take a long while"
 
-    #create wav.scp, text and utt2spk file for each of the train, dev and test set
+    #create wav.scp, text and utt2spk file for each of the train and test set
     python local/scripts/gen_wavscp_uttspk_text.py
 
     #create utt2spk and fix data dir
@@ -217,7 +217,6 @@ if [ $stage -le 10 ]; then
     
     #decoding
     utils/mkgraph.sh $lang_test_dir exp/tri6 exp/tri6/graph || exit 1;
-    steps/decode_basis_fmllr.sh --nj $nj --cmd "$cmd" exp/tri6/graph $dev_dir exp/tri6/decode_dev
     steps/decode_basis_fmllr.sh --nj $nj --cmd "$cmd" exp/tri6/graph $test_dir exp/tri6/decode_test
 
 fi
@@ -255,7 +254,6 @@ if [ $stage -le 12 ]; then
     
     #decoding
     utils/mkgraph.sh $lang_test_dir exp/tri8 exp/tri8/graph || exit 1;
-    steps/decode_basis_fmllr.sh --nj $nj --cmd "$cmd" exp/tri8/graph $dev_dir exp/tri8/decode_dev
     steps/decode_basis_fmllr.sh --nj $nj --cmd "$cmd" exp/tri8/graph $test_dir exp/tri8/decode_test
 
 fi
