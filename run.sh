@@ -5,10 +5,11 @@ stage=0
 cmd="run.pl"
 nj=$(nproc)
 
-#lm_type=""
-lm_type="_coll"
+lm_type=""
+#lm_type="_coll"
 
-train_dir="data/train_coll"
+train_dir="data/train"
+#train_dir="data/train_coll"
 train_dir_half="data/train_half"
 train_dir_30k="data/train_30k"
 test_dir="data/coll_dev_10"
