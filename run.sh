@@ -330,6 +330,11 @@ if [ $stage -le 16 ]; then
     #Align SAT triphones with FMLLR
     steps/align_basis_fmllr.sh  --nj $nj --cmd "$cmd" $train_dir $lang_dir exp/tri11 exp/tri11_ali
 
+    echo "$0: Creating graph and Decoding"
+    #decoding
+    utils/mkgraph.sh $lang_test_dir exp/tri11 exp/tri11/graph || exit 1;
+    steps/decode_basis_fmllr.sh --nj $nj --cmd "$cmd" exp/tri11/graph $test_dir exp/tri11/decode_test
+
 fi
 #####################################################################################################################
 
