@@ -106,10 +106,10 @@ def main():
 
     
     #COLLOQIAL LEXICON DATA
-    convert_word_list(word_list='local/data/lang_model/lm_corpus_word_list.txt', train_text='data/train_coll/text', out_path='data/local/lm_coll/lm_corpus_word_list_asmo.txt')
+    convert_word_list(word_list='local/data/lang_model/lm_corpus_word_list.txt', train_text='data/train/text', out_path='data/local/lm/lm_corpus_word_list_asmo.txt')
     
-    split_train_test(lm_corpus_asmo='local/data/lang_model/lm_corpus_clean_asmo.txt', train_text='data/train_coll/text',
-        train_lm='data/local/lm_coll/lm_corpus_train.txt', test_lm='data/local/lm_coll/lm_corpus_test.txt')
+    split_train_test(lm_corpus_asmo='local/data/lang_model/lm_corpus_clean_asmo.txt', train_text='data/train/text',
+        train_lm='data/local/lm/lm_corpus_train.txt', test_lm='data/local/lm/lm_corpus_test.txt')
 
 
 if __name__ == "__main__":

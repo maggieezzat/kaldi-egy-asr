@@ -320,9 +320,30 @@ def merge_splits(files, output_file_path):
 
 
 
+def conv_arab_file(in_file, out_file, is_text=False):
+
+    with open(out_file, 'w') as out:
+        with open(in_file, 'r') as f:
+            for line in f:
+                if is_text:
+                    line = line.strip().split(" ", 1)
+                    fname = line[0]
+                    text = line[1]
+                    text = text.split()
+                    out_line = ""
+                    for word in text:
+                        if word != "<UNK>":
+                            out_line += conv_arab(word)
+                        else:
+                            out_line += word + " "
+                    out.write(fname + " " + out_line.strip() + '\n')
+
+
+
 
 def main():
 
+    #conv_arab_file(in_file='data/train_coll/text', out_file='data/train_coll/text_ar_2', is_text=True)
     '''
     with open('data/train_coll/text', 'r') as f:
         with open('data/train_coll/text_ar', 'w') as out:
@@ -332,8 +353,8 @@ def main():
                 text = line[1]
                 out.write(fname + " " + conv_arab(text) + '\n') 
     '''
-    pass
-
+    print(conv_asmo('شريف'))
+    conv_arab_file(in_file='data/coll_dev_10/text', out_file='data/coll_dev_10/text_ar', is_text=True)
     
 if __name__ == "__main__":
     main()

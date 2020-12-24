@@ -2,8 +2,8 @@
 
 srilm_dir="../../tools/srilm/bin/i686-m64"
 
-#lm_type=""
-lm_type="_coll"
+lm_type=""
+#lm_type="_coll"
 
 bi_min=8
 tri_min=5

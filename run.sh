@@ -5,12 +5,15 @@ stage=0
 cmd="run.pl"
 nj=$(nproc)
 
-#lm_type=""
-lm_type="_coll"
+lm_type=""
+#lm_type="_coll"
 
-train_dir="data/train_coll"
+train_coll_dir="data/train_coll"
+train_dir="data/train"
+
 train_dir_half="data/train_half"
 train_dir_30k="data/train_30k"
+
 test_dir="data/coll_dev_10"
 
 lang_dir="data/lang$lm_type"
@@ -30,10 +33,10 @@ if [ $stage -le 0 ]; then
     echo "$0: Creating necessary files and preparing data. this may take a long while"
 
     #create wav.scp, text and utt2spk file for each of the train, dev and test set
-    python local/scripts/gen_wavscp_uttspk_text.py
+    python3 local/scripts/gen_wavscp_uttspk_text.py
 
     #create utt2spk and fix data dir
-    for x in $train_dir $test_dir; do
+    for x in $train_dir $train_coll_dir $test_dir; do
         #sort the files
         sort -u -o $x/wav.scp $x/wav.scp
         sort -u -o $x/text $x/text
@@ -54,7 +57,7 @@ if [ $stage -le 1 ]; then
 
     echo "$0: Extracting features"
 
-    for x in $train_dir $test_dir; do
+    for x in $train_dir $train_coll_dir $test_dir; do
         #make Mel Frequency features
         log_dir="$x/log"
         mfcc_dir="$x/mfcc"
@@ -111,10 +114,12 @@ fi
 if [ $stage -le 4 ]; then
     echo "Splitting data and training monophone"
     # take subset of data (30k) for monophone training
-    utils/subset_data_dir.sh --shortest $train_dir 30000 $train_dir_30k || exit 1;
+    #utils/subset_data_dir.sh --shortest $train_dir 30000 $train_dir_30k || exit 1;
+    utils/subset_data_dir.sh --shortest $train_coll_dir 30000 $train_dir_30k || exit 1;
 
     # take subset of data ( about half) for monophone alignment and first triphone training
-    utils/subset_data_dir.sh $train_dir 125000 $train_dir_half || exit 1;
+    #utils/subset_data_dir.sh $train_dir 125000 $train_dir_half || exit 1;
+    utils/subset_data_dir.sh $train_coll_dir 125000 $train_dir_half || exit 1;
 
     # monophone training
     steps/train_mono.sh --nj $nj --cmd "$cmd" $train_dir_30k $lang_dir exp/mono || exit 1;
@@ -142,10 +147,12 @@ if [ $stage -le 6 ]; then
     echo "Second triphone training"
 
     #aligning data in data/train using model from exp/tri1, putting alignments in exp/tri1_ali
-    steps/align_si.sh --nj $nj --cmd "$cmd" $train_dir $lang_dir exp/tri1 exp/tri1_ali || exit 1;
+    #steps/align_si.sh --nj $nj --cmd "$cmd" $train_dir $lang_dir exp/tri1 exp/tri1_ali || exit 1;
+    steps/align_si.sh --nj $nj --cmd "$cmd" $train_coll_dir $lang_dir exp/tri1 exp/tri1_ali || exit 1;
 
     #train with delta features
-    steps/train_deltas.sh --cmd "$cmd" 2500 15000 $train_dir $lang_dir exp/tri1_ali exp/tri2 || exit 1;
+    #steps/train_deltas.sh --cmd "$cmd" 2500 15000 $train_dir $lang_dir exp/tri1_ali exp/tri2 || exit 1;
+    steps/train_deltas.sh --cmd "$cmd" 2500 15000 $train_coll_dir $lang_dir exp/tri1_ali exp/tri2 || exit 1;
 fi
 #####################################################################################################################
 
@@ -156,18 +163,22 @@ if [ $stage -le 7 ]; then
     echo "Third triphone training"
 
     #aligning data in data/train using model from exp/tri2, putting alignments in exp/tri2_ali
-    steps/align_si.sh --nj $nj --cmd "$cmd" --use-graphs true $train_dir $lang_dir exp/tri2 exp/tri2_ali  || exit 1;
+    #steps/align_si.sh --nj $nj --cmd "$cmd" --use-graphs true $train_dir $lang_dir exp/tri2 exp/tri2_ali  || exit 1;
+    steps/align_si.sh --nj $nj --cmd "$cmd" --use-graphs true $train_coll_dir $lang_dir exp/tri2 exp/tri2_ali  || exit 1;
 
     #train LDA-MLLT triphones
-    steps/train_lda_mllt.sh --cmd "$cmd" 3500 20000 $train_dir $lang_dir exp/tri2_ali exp/tri3 || exit 1;
+    #steps/train_lda_mllt.sh --cmd "$cmd" 3500 20000 $train_dir $lang_dir exp/tri2_ali exp/tri3 || exit 1;
+    steps/train_lda_mllt.sh --cmd "$cmd" 3500 20000 $train_coll_dir $lang_dir exp/tri2_ali exp/tri3 || exit 1;
 
     #Pronunciation & Silence Probabilities
     #now we compute the pronunciation and silence probabilities from training data and re-create the lang directory.
-    steps/get_prons.sh --cmd "$cmd" $train_dir $lang_dir exp/tri3 || exit 1;
+    #steps/get_prons.sh --cmd "$cmd" $train_dir $lang_dir exp/tri3 || exit 1;
+    steps/get_prons.sh --cmd "$cmd" $train_coll_dir $lang_dir exp/tri3 || exit 1;
   
     utils/dict_dir_add_pronprobs.sh --max-normalize true $dict_dir_nosp exp/tri3/pron_counts_nowb.txt exp/tri3/sil_counts_nowb.txt exp/tri3/pron_bigram_counts_nowb.txt $dict_dir || exit 1;
 
     utils/prepare_lang.sh $dict_dir "<UNK>" data/local/lang $lang_dir || exit 1;
+    rm $lang_test_dir/G.fst
     utils/prepare_lang.sh $dict_dir "<UNK>" data/local/lang $lang_test_dir || exit 1;
 
     utils/format_lm.sh data/lang $lm_dir/tri_lm.o3g.kn.gz $dict_dir/lexicon.txt $lang_test_dir || exit 1;
@@ -217,7 +228,6 @@ if [ $stage -le 10 ]; then
     
     #decoding
     utils/mkgraph.sh $lang_test_dir exp/tri6 exp/tri6/graph || exit 1;
-    steps/decode_basis_fmllr.sh --nj $nj --cmd "$cmd" exp/tri6/graph $dev_dir exp/tri6/decode_dev
     steps/decode_basis_fmllr.sh --nj $nj --cmd "$cmd" exp/tri6/graph $test_dir exp/tri6/decode_test
 
 fi
@@ -255,7 +265,6 @@ if [ $stage -le 12 ]; then
     
     #decoding
     utils/mkgraph.sh $lang_test_dir exp/tri8 exp/tri8/graph || exit 1;
-    steps/decode_basis_fmllr.sh --nj $nj --cmd "$cmd" exp/tri8/graph $dev_dir exp/tri8/decode_dev
     steps/decode_basis_fmllr.sh --nj $nj --cmd "$cmd" exp/tri8/graph $test_dir exp/tri8/decode_test
 
 fi
