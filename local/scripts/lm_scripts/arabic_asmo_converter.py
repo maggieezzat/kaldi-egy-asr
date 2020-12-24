@@ -3,6 +3,8 @@ import glob
 from multiprocessing import Pool, cpu_count
 from os import listdir, makedirs
 
+
+
 def conv_asmo(line):
     out_line = ''
     line = line.strip()
