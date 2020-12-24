@@ -126,15 +126,20 @@ fi
 if [ $stage -le 4 ]; then
     echo "############################################# Splitting Data ##############################################"
     echo "$0: Splitting Data"
+    #monophone: 33.74h
     utils/subset_data_dir.sh --shortest $train_coll_dir 30000 $train_coll_30 || exit 1;
 
-    utils/subset_data_dir.sh $train_coll_dir 22500 $train_coll_50 || exit 1;
-    utils/subset_data_dir.sh $train_coll_dir 67500 $train_coll_150 || exit 1;
-    utils/subset_data_dir.sh $train_coll_dir 112500 $train_coll_250 || exit 1;
+    #1st tri: 52.07h
+    utils/subset_data_dir.sh $train_coll_dir 30000 $train_coll_50 || exit 1;
+    #2nd tri: 156.16h
+    utils/subset_data_dir.sh $train_coll_dir 90000 $train_coll_150 || exit 1;
+    #3rd tri: 260.23h
+    utils/subset_data_dir.sh $train_coll_dir 150000 $train_coll_250 || exit 1;
 
-
-    utils/subset_data_dir.sh $train_dir 225000 $train_dir_500 || exit 1;
-    utils/subset_data_dir.sh $train_dir 360000 $train_dir_800 || exit 1;
+    #5th tri: 431.05h
+    utils/subset_data_dir.sh $train_dir 300000 $train_dir_500 || exit 1;
+    #6th tri:
+    utils/subset_data_dir.sh $train_dir 500000 $train_dir_800 || exit 1;
 fi
 #####################################################################################################################
 
@@ -345,12 +350,11 @@ fi
 #################################################### NNET Training ###################################################
 if [ $stage -le 17 ]; then
     echo "$0: Starting nnet training"
-    nvidia-smi -c 3
     state=$(nvidia-smi  --query | grep 'Compute Mode')
     state=($state)
     state=${state[3]}
     if [ ! "$state" == "Exclusive_Process" ]; then
-      echo "Please run the script using sudo in order to set the compute mode"
+      echo "Please set the compute mode to Exclusive_Process using 'nvidia-smi -c 3' "
       exit 1
     else
       echo "Successfully set compute mode to Exclusive_Process"

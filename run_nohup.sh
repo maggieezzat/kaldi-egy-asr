@@ -1,1 +1,1 @@
-./run.sh --stage 4
+./run.sh --stage 10
