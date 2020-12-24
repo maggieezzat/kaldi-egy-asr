@@ -16,7 +16,7 @@ def save_duration(input_wav_scp_path, output_path, is_val=False):
     if not os.path.exists(output_path):
         os.makedirs("/".join(output_path.split("/")[:-1]))
     
-    with open(input_wav_scp_path,'r') as f:
+    with open(input_wav_scp_path,'r', encoding='utf-8') as f:
         with open(output_path,'w') as d:
             counter = 0
             for line in f.readlines():
@@ -43,7 +43,7 @@ def preprocess_training_data(train_dir = 'data/train', threshold=12, coll_only=F
     text = {}
     waves_dict = {}
 
-    with open('local/data/train/text', 'r') as f:
+    with open('local/data/train/text', 'r', encoding='utf-8') as f:
         for line in f:
             line = line.strip().split(" ", 1)
             if len(line) > 1:
@@ -54,7 +54,7 @@ def preprocess_training_data(train_dir = 'data/train', threshold=12, coll_only=F
 
     total_dur = 0
     long_utt_dur = 0
-    with open(durations_path,'r') as f:
+    with open(durations_path,'r', encoding='utf-8') as f:
         with open(long_utt_path, 'w') as out:
             counter = 0
             for line in f:
@@ -107,7 +107,7 @@ def preprocess_validate_data(dev_dir = 'data/coll_dev_10', threshold=12,
     durations_path='local/data/durations/val_wavs_durations.txt', long_utt_path='local/data/durations/val_long_utterances.txt'):
     text = {}
     waves_dict = {}
-    with open('local/data/coll_dev_10/text', 'r') as f:
+    with open('local/data/coll_dev_10/text', 'r', encoding='utf-8') as f:
         for line in f:
             line = line.strip().split(" ", 1)
             if len(line) > 1:
@@ -116,7 +116,7 @@ def preprocess_validate_data(dev_dir = 'data/coll_dev_10', threshold=12,
                 text[line[0]] = sent.strip()
 
     total_dur = 0
-    with open(durations_path, 'r') as f:
+    with open(durations_path, 'r', encoding='utf-8') as f:
         with open(long_utt_path, 'w') as out:
             counter = 0
             for line in f:
