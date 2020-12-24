@@ -343,18 +343,7 @@ def conv_arab_file(in_file, out_file, is_text=False):
 
 def main():
 
-    #conv_arab_file(in_file='data/train_coll/text', out_file='data/train_coll/text_ar_2', is_text=True)
-    '''
-    with open('data/train_coll/text', 'r') as f:
-        with open('data/train_coll/text_ar', 'w') as out:
-            for line in f:
-                line = line.strip().split(" ", 1)
-                fname = line[0]
-                text = line[1]
-                out.write(fname + " " + conv_arab(text) + '\n') 
-    '''
-    print(conv_asmo('شريف'))
-    conv_arab_file(in_file='data/coll_dev_10/text', out_file='data/coll_dev_10/text_ar', is_text=True)
+    pass
     
 if __name__ == "__main__":
     main()
