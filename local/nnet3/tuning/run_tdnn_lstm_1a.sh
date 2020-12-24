@@ -8,8 +8,8 @@ set -e -o pipefail
 stage=0
 nj=30
 train_set="train"
-test_sets="dev"
-gmm=tri8        # this is the source gmm-dir that we'll use for alignments; it
+test_sets="coll_dev_10"
+gmm=tri11        # this is the source gmm-dir that we'll use for alignments; it
                  # should have alignments for the specified training data.
 num_threads_ubm=32
 nnet3_affix=_tdnn_lstm_train       # affix for exp dirs, e.g. it was _cleaned in tedlium.
@@ -40,7 +40,7 @@ test_online_decoding=false  # if true, it will run the last decoding stage.
 . ./utils/parse_options.sh
 
 cmd="run.pl --max-jobs-run 2"
-nj=$(grep -c ^processor /proc/cpuinfo)
+nj=$(nproc)
 
 if ! cuda-compiled; then
   cat <<EOF && exit 1

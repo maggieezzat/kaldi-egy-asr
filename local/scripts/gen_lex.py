@@ -139,13 +139,11 @@ def main():
     create_normal_lex(lex_path=lex_file, lexp_path=lexp_file, text_path='data/train/text', lm_words_path='data/local/lm/lm_corpus_word_list_asmo.txt')
     '''
     ############################################# COLLIQUAL LEX #############################################
-    #lex_dir = 'data/local/dict_nosp_coll'
     lex_dir = 'data/local/dict_nosp'
     if not os.path.exists(lex_dir):
         os.makedirs(lex_dir)
     lex_file = lex_dir + '/lexicon.txt'
     lexp_file = lex_dir + '/lexiconp.txt'
-    #create_coll_lex(lex_path=lex_file, lexp_path=lexp_file, text_path='data/train_coll/text', lm_words_path='data/local/lm_coll/lm_corpus_word_list_asmo.txt')
     create_coll_lex(lex_path=lex_file, lexp_path=lexp_file, text_path='data/train/text', lm_words_path='data/local/lm/lm_corpus_word_list_asmo.txt')
     
 

@@ -5,24 +5,31 @@ stage=0
 cmd="run.pl"
 nj=$(nproc)
 
-lm_type=""
-#lm_type="_coll"
-
+#COLLOCIAL DATA SPLITS
 train_coll_dir="data/train_coll"
+train_coll_30="data/train_coll_30"
+train_coll_50="data/train_coll_50"
+train_coll_150="data/train_coll_150"
+train_coll_250="data/train_coll_250"
+
+#ALL DATA SPLITS (COLL+MSA)
 train_dir="data/train"
+train_dir_500="data/train_500"
+train_dir_800="data/train_800"
 
-train_dir_half="data/train_half"
-train_dir_30k="data/train_30k"
-
+#TEST SET
 test_dir="data/coll_dev_10"
 
-lang_dir="data/lang$lm_type"
-lang_test_dir="data/lang_test$lm_type"
+#LANG DIRECTORIES
+lang_dir="data/lang"
+lang_test_dir="data/lang_test"
 
-dict_dir_nosp="data/local/dict_nosp$lm_type"
-dict_dir="data/local/dict$lm_type"
+#DICT DIRECTORIES
+dict_dir_nosp="data/local/dict_nosp"
+dict_dir="data/local/dict"
 
-lm_dir="data/local/lm$lm_type/trigram"
+#LANGUAGE MODEL DIRECTORY
+lm_dir="data/local/lm/trigram"
 
 
 . ./path.sh
@@ -30,7 +37,8 @@ lm_dir="data/local/lm$lm_type/trigram"
 
 ################################################## Data Preparation #################################################
 if [ $stage -le 0 ]; then
-    echo "$0: Creating necessary files and preparing data. this may take a long while"
+    echo "############################################# Data Preparation ############################################"
+    echo "$0: Creating necessary files and preparing data."
 
     #create wav.scp, text and utt2spk file for each of the train, dev and test set
     python3 local/scripts/gen_wavscp_uttspk_text.py
@@ -55,6 +63,7 @@ fi
 ################################################## Feature Extraction ###############################################
 if [ $stage -le 1 ]; then
 
+    echo "############################################# Feature Extraction ##########################################"
     echo "$0: Extracting features"
 
     for x in $train_dir $train_coll_dir $test_dir; do
@@ -81,12 +90,14 @@ fi
 
 
 
-#################################################### Lang directory #################################################
+############################################ Lexicon & Lang directory #########################################
 if [ $stage -le 2 ]; then
 
+    echo "#################################### Lexicon & Lang directory #######################################"
+    echo "$0: Lexicon & Lang directory"
     #LEXICON AND LM
     python3 local/scripts/lm_scripts/clean_lm_data.py
-    sort -u -o data/local/lm$lm_type/lm_corpus_word_list_asmo.txt data/local/lm$lm_type/lm_corpus_word_list_asmo.txt
+    sort -u -o data/local/lm/lm_corpus_word_list_asmo.txt data/local/lm/lm_corpus_word_list_asmo.txt
     python3 local/scripts/gen_lex.py
     
     #create nonsilence_phones.txt, optional_silence.txt, silence_phones.txt files
@@ -104,78 +115,103 @@ fi
 
 ############################################# Language Model Training ###############################################
 if [ $stage -le 3 ]; then
+    echo "######################################## Language Model Training ##########################################"
     ./local/scripts/train_egy_lm.sh
 fi
 #####################################################################################################################
 
 
 
-################################################ Monophone Training #################################################
+################################################## Splitting Data ###################################################
 if [ $stage -le 4 ]; then
-    echo "Splitting data and training monophone"
-    # take subset of data (30k) for monophone training
-    #utils/subset_data_dir.sh --shortest $train_dir 30000 $train_dir_30k || exit 1;
-    utils/subset_data_dir.sh --shortest $train_coll_dir 30000 $train_dir_30k || exit 1;
+    echo "############################################# Splitting Data ##############################################"
+    echo "$0: Splitting Data"
+    utils/subset_data_dir.sh --shortest $train_coll_dir 30000 $train_coll_30 || exit 1;
 
-    # take subset of data ( about half) for monophone alignment and first triphone training
-    #utils/subset_data_dir.sh $train_dir 125000 $train_dir_half || exit 1;
-    utils/subset_data_dir.sh $train_coll_dir 125000 $train_dir_half || exit 1;
+    utils/subset_data_dir.sh $train_coll_dir 22500 $train_coll_50 || exit 1;
+    utils/subset_data_dir.sh $train_coll_dir 67500 $train_coll_150 || exit 1;
+    utils/subset_data_dir.sh $train_coll_dir 112500 $train_coll_250 || exit 1;
+
+
+    utils/subset_data_dir.sh $train_dir 225000 $train_dir_500 || exit 1;
+    utils/subset_data_dir.sh $train_dir 360000 $train_dir_800 || exit 1;
+fi
+#####################################################################################################################
+
+
+################################################ Monophone Training #################################################
+if [ $stage -le 5 ]; then
+    echo "########################################### Monophone Training ############################################"
+    echo "$0: Training Monophone"
 
     # monophone training
-    steps/train_mono.sh --nj $nj --cmd "$cmd" $train_dir_30k $lang_dir exp/mono || exit 1;
+    steps/train_mono.sh --nj $nj --cmd "$cmd" $train_coll_30 $lang_dir exp/mono || exit 1;
 fi
 #####################################################################################################################
 
 
 
 ############################################# First Triphone Training ###############################################
-if [ $stage -le 5 ]; then
-    echo "First triphone training"
+if [ $stage -le 6 ]; then
+    echo "######################################## First Triphone Training ##########################################"
+    echo "$0: FIRST triphone training"
 
-    #aligning data in data/train_half using model from exp/mono, putting alignments in exp/mono_ali
-    steps/align_si.sh --nj $nj --cmd "$cmd" $train_dir_half $lang_dir exp/mono exp/mono_ali || exit 1;
+    #aligning data in data/train_coll_50 using model from exp/mono, putting alignments in exp/mono_ali
+    steps/align_si.sh --nj $nj --cmd "$cmd" $train_coll_50 $lang_dir exp/mono exp/mono_ali || exit 1;
 
     #train with delta features
-    steps/train_deltas.sh --cmd "$cmd" 2000 10000 $train_dir_half $lang_dir exp/mono_ali exp/tri1 || exit 1;
+    steps/train_deltas.sh --cmd "$cmd" 2000 10000 $train_coll_50 $lang_dir exp/mono_ali exp/tri1 || exit 1;
 fi
 #####################################################################################################################
 
 
 
 ############################################# Second Triphone Training ##############################################
-if [ $stage -le 6 ]; then
-    echo "Second triphone training"
+if [ $stage -le 7 ]; then
+    echo "######################################## Second Triphone Training #########################################"
+    echo "$0: SECOND triphone training"
 
     #aligning data in data/train using model from exp/tri1, putting alignments in exp/tri1_ali
-    #steps/align_si.sh --nj $nj --cmd "$cmd" $train_dir $lang_dir exp/tri1 exp/tri1_ali || exit 1;
-    steps/align_si.sh --nj $nj --cmd "$cmd" $train_coll_dir $lang_dir exp/tri1 exp/tri1_ali || exit 1;
+    steps/align_si.sh --nj $nj --cmd "$cmd" $train_coll_150 $lang_dir exp/tri1 exp/tri1_ali || exit 1;
 
     #train with delta features
-    #steps/train_deltas.sh --cmd "$cmd" 2500 15000 $train_dir $lang_dir exp/tri1_ali exp/tri2 || exit 1;
-    steps/train_deltas.sh --cmd "$cmd" 2500 15000 $train_coll_dir $lang_dir exp/tri1_ali exp/tri2 || exit 1;
+    steps/train_deltas.sh --cmd "$cmd" 3000 30000 $train_coll_150 $lang_dir exp/tri1_ali exp/tri2 || exit 1;
+fi
+#####################################################################################################################
+
+
+
+############################################# THIRD Triphone Training ##############################################
+if [ $stage -le 8 ]; then
+    echo "######################################## THIRD Triphone Training ##########################################"
+    echo "$0: THIRD triphone training"
+
+    #aligning data in data/train using model from exp/tri2, putting alignments in exp/tri2_ali
+    steps/align_si.sh --nj $nj --cmd "$cmd" $train_coll_250 $lang_dir exp/tri2 exp/tri2_ali || exit 1;
+
+    #train with delta features
+    steps/train_deltas.sh --cmd "$cmd" 4000 60000 $train_coll_250 $lang_dir exp/tri2_ali exp/tri3 || exit 1;
 fi
 #####################################################################################################################
 
 
 
 ############################################ LDA-MLLT Triphones Training ############################################
-if [ $stage -le 7 ]; then
-    echo "Third triphone training"
+if [ $stage -le 9 ]; then
+    echo "############################################ LDA-MLLT Triphones Training ############################################"
+    echo "$0: FOURTH triphone training"
 
-    #aligning data in data/train using model from exp/tri2, putting alignments in exp/tri2_ali
-    #steps/align_si.sh --nj $nj --cmd "$cmd" --use-graphs true $train_dir $lang_dir exp/tri2 exp/tri2_ali  || exit 1;
-    steps/align_si.sh --nj $nj --cmd "$cmd" --use-graphs true $train_coll_dir $lang_dir exp/tri2 exp/tri2_ali  || exit 1;
+    #aligning data in data/train using model from exp/tri3, putting alignments in exp/tri3_ali
+    steps/align_si.sh --nj $nj --cmd "$cmd" --use-graphs true $train_coll_dir $lang_dir exp/tri3 exp/tri3_ali  || exit 1;
 
     #train LDA-MLLT triphones
-    #steps/train_lda_mllt.sh --cmd "$cmd" 3500 20000 $train_dir $lang_dir exp/tri2_ali exp/tri3 || exit 1;
-    steps/train_lda_mllt.sh --cmd "$cmd" 3500 20000 $train_coll_dir $lang_dir exp/tri2_ali exp/tri3 || exit 1;
+    steps/train_lda_mllt.sh --cmd "$cmd" 7000 100000 $train_coll_dir $lang_dir exp/tri3_ali exp/tri4 || exit 1;
 
     #Pronunciation & Silence Probabilities
     #now we compute the pronunciation and silence probabilities from training data and re-create the lang directory.
-    #steps/get_prons.sh --cmd "$cmd" $train_dir $lang_dir exp/tri3 || exit 1;
-    steps/get_prons.sh --cmd "$cmd" $train_coll_dir $lang_dir exp/tri3 || exit 1;
+    steps/get_prons.sh --cmd "$cmd" $train_coll_dir $lang_dir exp/tri4 || exit 1;
   
-    utils/dict_dir_add_pronprobs.sh --max-normalize true $dict_dir_nosp exp/tri3/pron_counts_nowb.txt exp/tri3/sil_counts_nowb.txt exp/tri3/pron_bigram_counts_nowb.txt $dict_dir || exit 1;
+    utils/dict_dir_add_pronprobs.sh --max-normalize true $dict_dir_nosp exp/tri4/pron_counts_nowb.txt exp/tri4/sil_counts_nowb.txt exp/tri4/pron_bigram_counts_nowb.txt $dict_dir || exit 1;
 
     utils/prepare_lang.sh $dict_dir "<UNK>" data/local/lang $lang_dir || exit 1;
     rm $lang_test_dir/G.fst
@@ -188,63 +224,31 @@ fi
 
 
 ############################################### SAT Triphones Training ##############################################
-if [ $stage -le 8 ]; then
-    echo "Fourth triphone training"
-
-    #Align LDA-MLLT triphones with FMLLR
-    steps/align_fmllr.sh --nj $nj --cmd "$cmd" $train_dir $lang_dir exp/tri3 exp/tri3_ali || exit 1;
-
-    #Train SAT triphones
-    steps/train_sat_basis.sh --cmd "$cmd" 4200 40000 $train_dir $lang_dir exp/tri3_ali exp/tri4
-    
-fi
-#####################################################################################################################
-
-
-
-############################################ LDA-MLLT Triphones Training ############################################
-if [ $stage -le 9 ]; then
-    echo "Fifth triphone training"
-
-    #Align SAT triphones with FMLLR
-    steps/align_basis_fmllr.sh  --nj $nj --cmd "$cmd" $train_dir $lang_dir exp/tri4 exp/tri4_ali
-
-    #train second pass of LDA-MLLT
-    steps/train_lda_mllt.sh --cmd "$cmd" 5500 70000 $train_dir $lang_dir exp/tri4_ali exp/tri5
-fi
-#####################################################################################################################
-
-
-
-############################################### SAT Triphones Training ##############################################
 if [ $stage -le 10 ]; then
-    echo "Sixth triphone training"
+    echo "########################################## SAT Triphones Training #########################################"
+    echo "$0: FIFTH triphone training"
 
     #Align LDA-MLLT triphones with FMLLR
-    steps/align_fmllr.sh --nj $nj --cmd "$cmd" $train_dir $lang_dir exp/tri5 exp/tri5_ali
-    
-    #Train SAT triphones
-    steps/train_sat_basis.sh --cmd "$cmd" 7000 100000 $train_dir $lang_dir exp/tri5_ali exp/tri6
-    
-    #decoding
-    utils/mkgraph.sh $lang_test_dir exp/tri6 exp/tri6/graph || exit 1;
-    steps/decode_basis_fmllr.sh --nj $nj --cmd "$cmd" exp/tri6/graph $test_dir exp/tri6/decode_test
+    steps/align_fmllr.sh --nj $nj --cmd "$cmd" $train_dir_500 $lang_dir exp/tri4 exp/tri4_ali || exit 1;
 
+    #Train SAT triphones
+    steps/train_sat_basis.sh --cmd "$cmd" 10000 150000 $train_dir_500 $lang_dir exp/tri4_ali exp/tri5
+    
 fi
 #####################################################################################################################
-
 
 
 
 ############################################ LDA-MLLT Triphones Training ############################################
 if [ $stage -le 11 ]; then
-    echo "Seventh triphone training"
+    echo "####################################### LDA-MLLT Triphones Training #######################################"
+    echo "$0: SIXTH triphone training"
 
     #Align SAT triphones with FMLLR
-    steps/align_basis_fmllr.sh  --nj $nj --cmd "$cmd" $train_dir $lang_dir exp/tri6 exp/tri6_ali
+    steps/align_basis_fmllr.sh  --nj $nj --cmd "$cmd" $train_dir_800 $lang_dir exp/tri5 exp/tri5_ali
 
-    #train third pass of LDA-MLLT
-    steps/train_lda_mllt.sh --cmd "$cmd" 8500 150000 $train_dir $lang_dir exp/tri6_ali exp/tri7
+    #train second pass of LDA-MLLT
+    steps/train_lda_mllt.sh --cmd "$cmd" 13000 220000 $train_dir_800 $lang_dir exp/tri5_ali exp/tri6
 fi
 #####################################################################################################################
 
@@ -252,20 +256,79 @@ fi
 
 ############################################### SAT Triphones Training ##############################################
 if [ $stage -le 12 ]; then
-    echo "Eighth triphone training"
+    echo "########################################## SAT Triphones Training #########################################"
+    echo "$0: SEVENTH triphone training"
 
     #Align LDA-MLLT triphones with FMLLR
-    steps/align_fmllr.sh --nj $nj --cmd "$cmd" $train_dir $lang_dir exp/tri7 exp/tri7_ali
+    steps/align_fmllr.sh --nj $nj --cmd "$cmd" $train_dir $lang_dir exp/tri6 exp/tri6_ali
     
     #Train SAT triphones
-    steps/train_sat_basis.sh --cmd "$cmd" 10000 200000 $train_dir $lang_dir exp/tri7_ali exp/tri8
+    steps/train_sat_basis.sh --cmd "$cmd" 16000 300000 $train_dir $lang_dir exp/tri6_ali exp/tri7
+
+fi
+#####################################################################################################################
+
+
+
+############################################ LDA-MLLT Triphones Training ############################################
+if [ $stage -le 13 ]; then
+    echo "####################################### LDA-MLLT Triphones Training #######################################"
+    echo "$0: EIGTH triphone training"
 
     #Align SAT triphones with FMLLR
-    steps/align_basis_fmllr.sh  --nj $nj --cmd "$cmd" $train_dir $lang_dir exp/tri8 exp/tri8_ali
+    steps/align_basis_fmllr.sh  --nj $nj --cmd "$cmd" $train_dir $lang_dir exp/tri7 exp/tri7_ali
+
+    #train third pass of LDA-MLLT
+    steps/train_lda_mllt.sh --cmd "$cmd" 19000 380000 $train_dir $lang_dir exp/tri7_ali exp/tri8
+fi
+#####################################################################################################################
+
+
+
+############################################### SAT Triphones Training ##############################################
+if [ $stage -le 14 ]; then
+    echo "########################################## SAT Triphones Training #########################################"
+    echo "$0: NINTH triphone training"
+
+    #Align LDA-MLLT triphones with FMLLR
+    steps/align_fmllr.sh --nj $nj --cmd "$cmd" $train_dir $lang_dir exp/tri8 exp/tri8_ali
     
-    #decoding
-    utils/mkgraph.sh $lang_test_dir exp/tri8 exp/tri8/graph || exit 1;
-    steps/decode_basis_fmllr.sh --nj $nj --cmd "$cmd" exp/tri8/graph $test_dir exp/tri8/decode_test
+    #Train SAT triphones
+    steps/train_sat_basis.sh --cmd "$cmd" 22000 450000 $train_dir $lang_dir exp/tri8_ali exp/tri9
+
+fi
+#####################################################################################################################
+
+
+
+############################################ LDA-MLLT Triphones Training ############################################
+if [ $stage -le 15 ]; then  
+    echo "####################################### LDA-MLLT Triphones Training #######################################"
+    echo "$0: TENTH triphone training"
+
+    #Align SAT triphones with FMLLR
+    steps/align_basis_fmllr.sh  --nj $nj --cmd "$cmd" $train_dir $lang_dir exp/tri9 exp/tri9_ali
+
+    #train third pass of LDA-MLLT
+    steps/train_lda_mllt.sh --cmd "$cmd" 25000 500000 $train_dir $lang_dir exp/tri9_ali exp/tri10
+fi
+#####################################################################################################################
+
+
+
+############################################### SAT Triphones Training ##############################################
+if [ $stage -le 16 ]; then
+    echo "########################################## SAT Triphones Training #########################################"
+    echo "$0: ELEVENTH triphone training"
+
+    #Align LDA-MLLT triphones with FMLLR
+    steps/align_fmllr.sh --nj $nj --cmd "$cmd" $train_dir $lang_dir exp/tri10 exp/tri10_ali
+    
+    #Train SAT triphones
+    steps/train_sat_basis.sh --cmd "$cmd" 28000 550000 $train_dir $lang_dir exp/tri10_ali exp/tri11
+
+    #Align SAT triphones with FMLLR
+    steps/align_basis_fmllr.sh  --nj $nj --cmd "$cmd" $train_dir $lang_dir exp/tri11 exp/tri11_ali
 
 fi
 #####################################################################################################################
@@ -275,7 +338,7 @@ fi
 
 
 #################################################### NNET Training ###################################################
-if [ $stage -le 13 ]; then
+if [ $stage -le 17 ]; then
     echo "$0: Starting nnet training"
     nvidia-smi -c 3
     state=$(nvidia-smi  --query | grep 'Compute Mode')

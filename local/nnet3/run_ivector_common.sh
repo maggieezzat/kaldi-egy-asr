@@ -11,10 +11,10 @@ stage=0
 nj=30
 ########################################################
 train_set="train"
-test_sets="dev"
+test_sets="coll_dev_10"
 ########################################################
 
-gmm=tri8                # This specifies a GMM-dir from the features of the type you're training the system on;
+gmm=tri11                # This specifies a GMM-dir from the features of the type you're training the system on;
                         # it should contain alignments for 'train_set'.
 online_cmvn_iextractor=false
 
@@ -30,7 +30,7 @@ nnet3_affix=            # affix for exp/nnet3 directory to put iVector stuff in 
 
 #. ./cmd.sh
 cmd="run.pl"
-nj=$(grep -c ^processor /proc/cpuinfo)
+nj=$(nporc)
 
 . ./path.sh
 . utils/parse_options.sh

@@ -2,25 +2,22 @@
 
 srilm_dir="../../tools/srilm/bin/i686-m64"
 
-lm_type=""
-#lm_type="_coll"
-
 bi_min=8
 tri_min=5
 
 #####################################################################
 
-lm_text="data/local/lm$lm_type/lm_corpus_train.txt"
+lm_text="data/local/lm/lm_corpus_train.txt"
 
-lm_vocab="data/local/lm$lm_type/lm_corpus_word_list_asmo.txt"
+lm_vocab="data/local/lm/lm_corpus_word_list_asmo.txt"
 
-lm_test="data/local/lm$lm_type/lm_corpus_test.txt"
+lm_test="data/local/lm/lm_corpus_test.txt"
 
-tri_dir="data/local/lm$lm_type/trigram"
+tri_dir="data/local/lm/trigram"
 
-lang_test_dir="data/lang_test$lm_type"
+lang_test_dir="data/lang_test"
 
-dict_dir_nosp="data/local/dict_nosp$lm_type"
+dict_dir_nosp="data/local/dict_nosp"
 #####################################################################
 
 
