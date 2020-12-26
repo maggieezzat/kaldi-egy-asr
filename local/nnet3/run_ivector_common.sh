@@ -30,7 +30,7 @@ nnet3_affix=            # affix for exp/nnet3 directory to put iVector stuff in 
 
 #. ./cmd.sh
 cmd="run.pl"
-nj=$(nporc)
+nj=$(nproc)
 
 . ./path.sh
 . utils/parse_options.sh
