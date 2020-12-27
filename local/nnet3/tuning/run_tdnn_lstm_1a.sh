@@ -39,7 +39,7 @@ test_online_decoding=false  # if true, it will run the last decoding stage.
 . ./path.sh
 . ./utils/parse_options.sh
 
-cmd="run.pl --max-jobs-run 2"
+cmd="run.pl --max-jobs-run 4"
 nj=$(nproc)
 
 if ! cuda-compiled; then
@@ -106,10 +106,6 @@ fi
 
 
 if [ $stage -le 13 ]; then
-  if [[ $(hostname -f) == *.clsp.jhu.edu ]] && [ ! -d $dir/egs/storage ]; then
-    utils/create_split_dir.pl \
-     /export/b0{3,4,5,6}/$USER/kaldi-data/egs/tedlium-$(date +'%m_%d_%H_%M')/s5_r2/$dir/egs/storage $dir/egs/storage
-  fi
 
   steps/nnet3/train_rnn.py --stage=$train_stage \
     --cmd="$cmd" \
@@ -119,9 +115,9 @@ if [ $stage -le 13 ]; then
     --trainer.max-param-change=2.0 \
     --trainer.num-epochs=30 \
     --trainer.deriv-truncate-margin=10 \
-    --trainer.samples-per-iter=20000 \
+    --trainer.samples-per-iter=100000 \
     --trainer.optimization.num-jobs-initial=3 \
-    --trainer.optimization.num-jobs-final=12 \
+    --trainer.optimization.num-jobs-final=24 \
     --trainer.optimization.initial-effective-lrate=0.0003 \
     --trainer.optimization.final-effective-lrate=0.000001 \
     --trainer.optimization.shrink-value 0.99 \
@@ -150,8 +146,7 @@ if [ $stage -le 14 ]; then
     (
       frames_per_chunk=$(echo $chunk_width | cut -d, -f1)
       data_affix=$(echo $data | sed s/test_//)
-      #nj=$(wc -l <data/${data}_hires/spk2utt)
-      nj=12
+      nj=$(nproc)
       
       graph_dir=$gmm_dir/graph
       
@@ -184,8 +179,7 @@ if [ $stage -le 15 ]; then
   for data in $test_sets; do
     (
       data_affix=$(echo $data | sed s/test_//)
-      #nj=$(wc -l <data/${data}_hires/spk2utt)
-      nj=12
+      nj=$(nproc)
       
       graph_dir=$gmm_dir/graph
       steps/nnet3/decode_looped.sh \
