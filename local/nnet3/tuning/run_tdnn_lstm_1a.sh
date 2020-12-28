@@ -35,7 +35,6 @@ remove_egs=true
 #decode options
 test_online_decoding=false  # if true, it will run the last decoding stage.
 
-#. ./cmd.sh
 . ./path.sh
 . ./utils/parse_options.sh
 
@@ -206,20 +205,13 @@ if $test_online_decoding && [ $stage -le 16 ]; then
   for data in $test_sets; do
     (
       data_affix=$(echo $data | sed s/test_//)
-      nj=$(wc -l <data/${data}_hires/spk2utt)
+      nj=$(nproc)
       # note: we just give it "data/${data}" as it only uses the wav.scp, the
       # feature type does not matter.
-      for lmtype in tgpr bd_tgpr; do
-        graph_dir=$gmm_dir/graph_${lmtype}
-        steps/online/nnet3/decode.sh \
-          --nj $nj --cmd "$cmd" \
-          $graph_dir data/${data} ${dir}_online/decode_${lmtype}_${data_affix} || exit 1
-      done
-      steps/lmrescore.sh --cmd "$cmd" data/lang_test_{tgpr,tg} \
-        data/${data}_hires ${dir}_online/decode_{tgpr,tg}_${data_affix} || exit 1
-      steps/lmrescore_const_arpa.sh --cmd "$cmd" \
-        data/lang_test_bd_{tgpr,fgconst} \
-       data/${data}_hires ${dir}_online/decode_${lmtype}_${data_affix}{,_fg} || exit 1
+      graph_dir=$gmm_dir/graph
+      steps/online/nnet3/decode.sh \
+        --nj $nj --cmd "$cmd" \
+        $graph_dir data/${data} ${dir}_online/decode_${data_affix} || exit 1
     ) || touch $dir/.error &
   done
   wait
