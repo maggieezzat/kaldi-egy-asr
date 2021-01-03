@@ -48,7 +48,7 @@ steps/online/nnet2/extract_ivectors_online.sh --cmd "$cmd" --nj $nj \
       ${data_dir}_hires exp/nnet3${nnet3_affix}/extractor exp/nnet3${nnet3_affix}/ivectors_${data}_hires
 #####################################################################################################################
 
-echo "$(($SECONDS / 60)) minutes and $(($SECONDS % 60)) seconds for extracting features" >> dec_time.txt
+echo "$(($SECONDS / 60)) minutes and $(($SECONDS % 60)) seconds for extracting features" >> dec_time_beam_60.txt
 
 extr_time=$SECONDS
 
@@ -64,11 +64,12 @@ graph_dir=exp/tri11/graph
 steps/nnet3/decode_looped.sh \
         --frames-per-chunk 30 \
         --nj $nj --cmd "$cmd" \
+        --beam 60 \
         --online-ivector-dir exp/nnet3${nnet3_affix}/ivectors_${data}_hires \
-        $graph_dir ${data_dir}_hires ${dir}/decode_looped_${data_affix}
+        $graph_dir ${data_dir}_hires ${dir}/decode_looped_${data_affix} 
 
 
-echo "$(($SECONDS / 60)) minutes and $(($SECONDS % 60)) seconds for decoding" >> dec_time.txt
+echo "$(($SECONDS / 60)) minutes and $(($SECONDS % 60)) seconds for decoding" >> dec_time_beam_60.txt
 total=$(($SECONDS + $extr_time))
-echo "Total time is $(($total / 60)) minutes and $(($total % 60)) seconds" >> dec_time.txt
+echo "Total time is $(($total / 60)) minutes and $(($total % 60)) seconds" >> dec_time_beam_60.txt
 
