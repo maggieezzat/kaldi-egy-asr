@@ -1,0 +1,6 @@
+4 minutes and 7 seconds for extracting features
+0 minutes and 0 seconds for decoding
+Total time is 4 minutes and 7 seconds
+0 minutes and 32 seconds for extracting features
+35 minutes and 44 seconds for decoding
+Total time is 36 minutes and 16 seconds
